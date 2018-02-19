@@ -143,6 +143,8 @@ static PyMemberDef cyan_settings_object_members[] = {
 
     { "disableUsbCheckOnBoot", T_USHORT, 0, 0, "" },
     { "enableLatencyTest", T_USHORT, 0, 0, "" },
+    { "busMessagesToAndroid", T_USHORT, 0, 0, "" },
+    { "enablePcEthernetComm", T_USHORT, 0, 0, "" },
     { "reserved", T_USHORT, 0, 0, "" },
 
     { "digitalIoThresholdTicks", T_USHORT, offsetof(cyan_settings_object, s.digitalIoThresholdTicks), 0, "" },
@@ -221,6 +223,14 @@ static PyObject* cyan_settings_object_getattr(PyObject *o, PyObject *attr_name)
         Py_DECREF(attr_name);
         return Py_BuildValue("i", (obj->s.flags.enableLatencyTest));
     }
+    else if (PyUnicode_CompareWithASCIIString(attr_name, "busMessagesToAndroid") == 0) {
+        Py_DECREF(attr_name);
+        return Py_BuildValue("i", (obj->s.flags.busMessagesToAndroid));
+    }
+    else if (PyUnicode_CompareWithASCIIString(attr_name, "enablePcEthernetComm") == 0) {
+        Py_DECREF(attr_name);
+        return Py_BuildValue("i", (obj->s.flags.enablePcEthernetComm));
+    }
     else if (PyUnicode_CompareWithASCIIString(attr_name, "reserved") == 0) {
         Py_DECREF(attr_name);
         return Py_BuildValue("i", (obj->s.flags.reserved));
@@ -237,7 +247,7 @@ static int cyan_settings_object_setattr(PyObject *o, PyObject *name, PyObject *v
         if (!PyLong_Check(value)) {
             PyErr_Format(PyExc_AttributeError,
                 "'%.50s' object attribute '%.400s' needs to be a int",
-                MODULE_NAME "." ETHERNET_SETTINGS_OBJECT_NAME, name);
+                MODULE_NAME "." CYAN_SETTINGS_OBJECT_NAME, name);
             return -1;
         }
         obj->s.flags.disableUsbCheckOnBoot = PyLong_AsLong(value) & 0x01;
@@ -247,17 +257,37 @@ static int cyan_settings_object_setattr(PyObject *o, PyObject *name, PyObject *v
         if (!PyLong_Check(value)) {
             PyErr_Format(PyExc_AttributeError,
                 "'%.50s' object attribute '%.400s' needs to be a int",
-                MODULE_NAME "." ETHERNET_SETTINGS_OBJECT_NAME, name);
+                MODULE_NAME "." CYAN_SETTINGS_OBJECT_NAME, name);
             return -1;
         }
         obj->s.flags.enableLatencyTest = PyLong_AsLong(value) & 0x01;
+        return 0;
+    }
+    else if (PyUnicode_CompareWithASCIIString(name, "busMessagesToAndroid") == 0) {
+        if (!PyLong_Check(value)) {
+            PyErr_Format(PyExc_AttributeError,
+                "'%.50s' object attribute '%.400s' needs to be a int",
+                MODULE_NAME "." CYAN_SETTINGS_OBJECT_NAME, name);
+            return -1;
+        }
+        obj->s.flags.busMessagesToAndroid = PyLong_AsLong(value) & 0x01;
+        return 0;
+    }
+    else if (PyUnicode_CompareWithASCIIString(name, "enablePcEthernetComm") == 0) {
+        if (!PyLong_Check(value)) {
+            PyErr_Format(PyExc_AttributeError,
+                "'%.50s' object attribute '%.400s' needs to be a int",
+                MODULE_NAME "." CYAN_SETTINGS_OBJECT_NAME, name);
+            return -1;
+        }
+        obj->s.flags.enablePcEthernetComm = PyLong_AsLong(value) & 0x01;
         return 0;
     }
     else if (PyUnicode_CompareWithASCIIString(name, "reserved") == 0) {
         if (!PyLong_Check(value)) {
             PyErr_Format(PyExc_AttributeError,
                 "'%.50s' object attribute '%.400s' needs to be a int",
-                MODULE_NAME "." ETHERNET_SETTINGS_OBJECT_NAME, name);
+                MODULE_NAME "." CYAN_SETTINGS_OBJECT_NAME, name);
             return -1;
         }
         obj->s.flags.reserved = PyLong_AsLong(value);

@@ -85,43 +85,40 @@ char* neodevice_to_string(unsigned long type)
 {
     switch (type) {
     case NEODEVICE_BLUE: return "neoVI BLUE";
-    case NEODEVICE_SW_VCAN: return "ValueCAN2 SW";
+    case NEODEVICE_ECU_AVB: return "neoECU AVB/TSN";
+    case NEODEVICE_RADSUPERMOON: return "RAD SuperMoon";
     case NEODEVICE_DW_VCAN: return "ValueCAN2 DW";
+    case NEODEVICE_RADMOON2: return "RAD Moon2";
+    case NEODEVICE_RADGIGALOG: return "RAD Gigalog";
+    case NEODEVICE_VCAN41: return "ValueCAN4-1";
     case NEODEVICE_FIRE: return "neoVI FIRE";
     case NEODEVICE_VCAN3: return "ValueCAN3";
     case NEODEVICE_RED: return "neoVI RED";
     case NEODEVICE_ECU: return "ECU";
     case NEODEVICE_IEVB: return "IEVB";
     case NEODEVICE_PENDANT: return "Pendant";
-    //case NEODEVICE_VIRTUAL_NEOVI: return "Virtual neoVI";
-    case NEODEVICE_ECUCHIP_UART: return "ECUCHIP (UART)";
-    case NEODEVICE_PLASMA_1_11: return "neoVI PLASMA (v1.11)";
-    case NEODEVICE_FIRE_VNET: return "neoVI FIRE VNET";
-    case NEODEVICE_NEOANALOG: return "neoAnalog";
-    case NEODEVICE_CT_OBD: return "unknown/unsupported";
-    case NEODEVICE_PLASMA_1_12: return "neoVI PLASMA (v1.12)";
-    case NEODEVICE_PLASMA_1_13: return "neoVI PLASMA (v1.13)";
-    case NEODEVICE_ION_2: return "neoVI ION (v2)";
-    case NEODEVICE_ION_3: return "neoVI ION (v3)";
-    case NEODEVICE_RADSTAR: return "RADSTAR";
-    case NEODEVICE_VCAN4: return "ValueCAN4";
-    case NEODEVICE_CMPROBE: return "cmProbe";
-    //case NEODEVICE_ECU15: return "neoECU15";
-    //case NEODEVICE_ECU25: return "neoECU25";
     case NEODEVICE_OBD2_PRO: return "neoOBD2 Pro";
-    case NEODEVICE_VCAN4_12: return "ValueCAN4 1/2";
+    case NEODEVICE_ECUCHIP_UART: return "neoECU Chip";
+    case NEODEVICE_PLASMA: return "neoVI PLASMA";
+    //case NEODEVICE_DONT_REUSE0: return "DONT REUSE0";
+    case NEODEVICE_NEOANALOG: return "neoAnalog";
+    //case NEODEVICE_CT_OBD: return "";
+    //case NEODEVICE_DONT_REUSE1: return "DONT REUSE1";
+    //case NEODEVICE_DONT_REUSE2: return "DONT REUSE2";
+    case NEODEVICE_ION: return "neoVI ION";
+    case NEODEVICE_RADSTAR: return "RAD Star";
+    //case NEODEVICE_DONT_REUSE3: return "DONT REUSE3";
+    case NEODEVICE_VCAN4: return "ValueCAN4";
+    case NEODEVICE_VCAN42: return "ValueCAN4-2";
+    case NEODEVICE_CMPROBE: return "CMProbe";
     case NEODEVICE_EEVB: return "EEVB";
-    case NEODEVICE_VCANRF: return "ValueCAN.rf";
+    case NEODEVICE_VCANRF: return "ValueCAN.RF";
     case NEODEVICE_FIRE2: return "neoVI FIRE2";
     case NEODEVICE_FLEX: return "FLEX";
     case NEODEVICE_RADGALAXY: return "RAD Galaxy";
     case NEODEVICE_RADSTAR2: return "RAD Star2";
     case NEODEVICE_VIVIDCAN: return "VividCAN";
-    case NEODEVICE_OBD2_SIM: return "OBD2 Sim";
-    //case NEODEVICE_RADSUPERMOON: return "RAD SUPERMOON";
-    // These two share the same value as others? Look into this later.
-    //case NEODEVICE_RADMOON2: return "RADMOON2";
-    //case NEODEVICE_RADGIGALOG: return "RADGIGALOG";
+    case NEODEVICE_OBD2_SIM: return "neoOBD2 Sim";
     default: return "unknown/unsupported";
     };
     return "unknown/unsupported";
@@ -129,7 +126,7 @@ char* neodevice_to_string(unsigned long type)
 
 PyObject* meth_find_devices(PyObject* self, PyObject* args, PyObject* keywords)
 {
-    unsigned long device_type = NEODEVICE_ALL;
+    unsigned long device_type = -1;
     int ex_options = -1;
     char* kwords[] = { "type", "stOptionsOpenNeoEx", NULL };
     if (!PyArg_ParseTupleAndKeywords(args, keywords, arg_parse("|ii:", __FUNCTION__), 
@@ -271,7 +268,7 @@ PyObject* meth_open_device(PyObject* self, PyObject* args, PyObject* keywords)
             }
             NeoDevice devices[255];
             int count = 255;
-            unsigned long device_type = NEODEVICE_ALL;
+            unsigned long device_type = -1;
             Py_BEGIN_ALLOW_THREADS
             // Get a list of devices to find serial number
             if (ex_options == -1 && !icsneoFindNeoDevices(device_type, devices, &count)) {
@@ -1725,35 +1722,36 @@ PyObject* meth_get_device_settings(PyObject* self, PyObject* args)
     // User is overriding the device type here, this is useful for FIRE2 VNET for PLASMA/ION.
     if (!device_type)
         device_type = ((neo_device_object*)obj)->dev.DeviceType;
-	switch(device_type)
-	{
-		case NEODEVICE_VCAN3:
-			return _get_vcan3_settings(handle);
-			break;
-		case NEODEVICE_VCAN4_12:
-			return _get_vcan412_settings(handle);
-			break;
+    switch(device_type)
+    {
+        case NEODEVICE_VCAN3:
+            return _get_vcan3_settings(handle);
+            break;
+        case NEODEVICE_VCAN41:
+        case NEODEVICE_VCAN42:
+            return _get_vcan412_settings(handle);
+            break;
 #if 0 // Not implemented in 802
-		case NEODEVICE_VCAN4:
-			return _get_vcan4_settings(handle);
-			break;
+        case NEODEVICE_VCAN4:
+            return _get_vcan4_settings(handle);
+            break;
 #endif // 0
-		case NEODEVICE_VCANRF:
-			return _get_vcanrf_settings(handle);
-			break;
-		case NEODEVICE_FIRE2:
-			return _get_cyan_settings(handle);
-			break;
-		case NEODEVICE_RADGALAXY:
-			return _get_rad_galaxy_settings(handle);
-			break;
-		case NEODEVICE_VIVIDCAN:
-			return _get_vividcan_settings(handle);
-			break;
-		default:
-			return _get_fire_settings(handle);
-			break;
-	}
+        case NEODEVICE_VCANRF:
+            return _get_vcanrf_settings(handle);
+            break;
+        case NEODEVICE_FIRE2:
+            return _get_cyan_settings(handle);
+            break;
+        case NEODEVICE_RADGALAXY:
+            return _get_rad_galaxy_settings(handle);
+            break;
+        case NEODEVICE_VIVIDCAN:
+            return _get_vividcan_settings(handle);
+            break;
+        default:
+            return _get_fire_settings(handle);
+            break;
+    }
     return set_ics_exception(exception_runtime_error(), "This is a bug!");
 }
 
@@ -2215,35 +2213,36 @@ PyObject* meth_set_device_settings(PyObject* self, PyObject* args)
     ICS_HANDLE handle = PyNeoDevice_GetHandle(obj);
     if (!device_type)
         device_type = ((neo_device_object*)obj)->dev.DeviceType;
-	switch(device_type)
-	{
-		case NEODEVICE_VCAN3:
-			return _set_vcan3_settings(handle, settings, save_to_eeprom);
-			break;
-		case NEODEVICE_VCAN4_12:
-			return _set_vcan412_settings(handle, settings, save_to_eeprom);
-			break;
+    switch(device_type)
+    {
+        case NEODEVICE_VCAN3:
+            return _set_vcan3_settings(handle, settings, save_to_eeprom);
+            break;
+        case NEODEVICE_VCAN41:
+        case NEODEVICE_VCAN42:
+            return _set_vcan412_settings(handle, settings, save_to_eeprom);
+            break;
 #if 0 // Not implemented in 802
-		case NEODEVICE_VCAN4:
-			return _set_vcan4_settings(handle, settings, save_to_eeprom);
-			break;
+        case NEODEVICE_VCAN4:
+            return _set_vcan4_settings(handle, settings, save_to_eeprom);
+            break;
 #endif // 0
-		case NEODEVICE_VCANRF:
-			return _set_vcanrf_settings(handle, settings, save_to_eeprom);
-			break;
-		case NEODEVICE_FIRE2:
-			return _set_cyan_settings(handle, settings, save_to_eeprom);
-			break;
-		case NEODEVICE_RADGALAXY:
-			return _set_rad_galaxy_settings(handle, settings, save_to_eeprom);
-			break;
-		case NEODEVICE_VIVIDCAN:
-			return _set_vividcan_settings(handle, settings, save_to_eeprom);
-			break;
-		default:
-			return _set_fire_settings(handle, settings, save_to_eeprom);
-			break;
-	}
+        case NEODEVICE_VCANRF:
+            return _set_vcanrf_settings(handle, settings, save_to_eeprom);
+            break;
+        case NEODEVICE_FIRE2:
+            return _set_cyan_settings(handle, settings, save_to_eeprom);
+            break;
+        case NEODEVICE_RADGALAXY:
+            return _set_rad_galaxy_settings(handle, settings, save_to_eeprom);
+            break;
+        case NEODEVICE_VIVIDCAN:
+            return _set_vividcan_settings(handle, settings, save_to_eeprom);
+            break;
+        default:
+            return _set_fire_settings(handle, settings, save_to_eeprom);
+            break;
+    }
     return set_ics_exception(exception_runtime_error(), "This is a bug!");
 }
 

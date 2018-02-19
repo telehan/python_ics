@@ -39,6 +39,10 @@ typedef struct {
 static PyMemberDef op_eth_settings_object_members[] = {
     { "ucConfigMode", T_UBYTE, offsetof(op_eth_settings_object, s.ucConfigMode), 0, ""},
     { "preemption_en", T_UBYTE, offsetof(op_eth_settings_object, s.preemption_en), 0, ""},
+    { "mac_addr1", T_OBJECT_EX, NULL, 0, "Original Addr for spoofing"},
+    { "mac_addr2", T_OBJECT_EX, NULL, 0, "Target Addr for spoofing"},
+    { "mac_spoofing_en", T_OBJECT_EX, NULL, 0, ""},
+    { "mac_spoofing_isDstOrSrc", T_OBJECT_EX, NULL, 0, ""},
     { "reserved0", T_OBJECT_EX, NULL, 0, ""},
     { NULL, 0, 0, 0, 0 },
 };
@@ -87,6 +91,44 @@ static PyObject* op_eth_settings_object_getattr(PyObject *o, PyObject *attr_name
         Py_DECREF(temp);
         return data;
     }
+    else if (PyUnicode_CompareWithASCIIString(attr_name, "mac_addr1") == 0) {
+        Py_DECREF(attr_name);
+        op_eth_settings_object* obj = (op_eth_settings_object*)o;
+        PyObject* temp = Py_BuildValue("(i,i,i,i,i,i)",
+            obj->s.mac_addr1[0],
+            obj->s.mac_addr1[1],
+            obj->s.mac_addr1[2],
+            obj->s.mac_addr1[3],
+            obj->s.mac_addr1[4],
+            obj->s.mac_addr1[5]);
+        PyObject* data = PyTuple_GetSlice(temp, 0, 6);
+        Py_DECREF(temp);
+        return data;
+    }
+    else if (PyUnicode_CompareWithASCIIString(attr_name, "mac_addr2") == 0) {
+        Py_DECREF(attr_name);
+        op_eth_settings_object* obj = (op_eth_settings_object*)o;
+        PyObject* temp = Py_BuildValue("(i,i,i,i,i,i)",
+            obj->s.mac_addr2[0],
+            obj->s.mac_addr2[1],
+            obj->s.mac_addr2[2],
+            obj->s.mac_addr2[3],
+            obj->s.mac_addr2[4],
+            obj->s.mac_addr2[5]);
+        PyObject* data = PyTuple_GetSlice(temp, 0, 6);
+        Py_DECREF(temp);
+        return data;
+    }
+    else if (PyUnicode_CompareWithASCIIString(attr_name, "mac_spoofing_en") == 0) {
+        Py_DECREF(attr_name);
+        op_eth_settings_object* obj = (op_eth_settings_object*)o;
+        return Py_BuildValue("i", obj->s.mac_spoofing_en);
+    }
+    else if (PyUnicode_CompareWithASCIIString(attr_name, "mac_spoofing_isDstOrSrc") == 0) {
+        Py_DECREF(attr_name);
+        op_eth_settings_object* obj = (op_eth_settings_object*)o;
+        return Py_BuildValue("i", obj->s.mac_spoofing_isDstOrSrc);
+    }
     else {
         return PyObject_GenericGetAttr(o, attr_name);
     }
@@ -112,6 +154,52 @@ static int op_eth_settings_object_setattr(PyObject *o, PyObject *name, PyObject 
                 obj->s.reserved0[i] = (unsigned char)PyLong_AsLong(data);
             }
         }
+        return 0;
+    }
+    else if (PyUnicode_CompareWithASCIIString(name, "mac_addr1") == 0) {
+        // Make sure we are a tuple and len() == 8
+        if (!PyTuple_Check(value)) {
+            PyErr_Format(PyExc_AttributeError,
+                "'%.50s' object attribute '%.400s' needs to be a tuple",
+                MODULE_NAME "." OP_ETH_SETTINGS_OBJECT_NAME, name);
+            return -1;
+        }
+        // Get tuple items and place them in array, set as 0 if error.
+        for (int i=0; i < 6 && i < PyObject_Length(value); ++i) {
+            PyObject* data = PyTuple_GetItem(value, i);
+            if (!data && !PyLong_Check(data)) {
+                obj->s.mac_addr1[i] = 0;
+            } else {
+                obj->s.mac_addr1[i] = (unsigned char)PyLong_AsLong(data);
+            }
+        }
+        return 0;
+    }
+    else if (PyUnicode_CompareWithASCIIString(name, "mac_addr2") == 0) {
+        // Make sure we are a tuple and len() == 8
+        if (!PyTuple_Check(value)) {
+            PyErr_Format(PyExc_AttributeError,
+                "'%.50s' object attribute '%.400s' needs to be a tuple",
+                MODULE_NAME "." OP_ETH_SETTINGS_OBJECT_NAME, name);
+            return -1;
+        }
+        // Get tuple items and place them in array, set as 0 if error.
+        for (int i=0; i < 6 && i < PyObject_Length(value); ++i) {
+            PyObject* data = PyTuple_GetItem(value, i);
+            if (!data && !PyLong_Check(data)) {
+                obj->s.mac_addr2[i] = 0;
+            } else {
+                obj->s.mac_addr2[i] = (unsigned char)PyLong_AsLong(data);
+            }
+        }
+        return 0;
+    }
+    else if (PyUnicode_CompareWithASCIIString(name, "mac_spoofing_en") == 0) {
+        obj->s.mac_spoofing_en = (unsigned char)PyLong_AsLong(value);
+        return 0;
+    }
+    else if (PyUnicode_CompareWithASCIIString(name, "mac_spoofing_isDstOrSrc") == 0) {
+        obj->s.mac_spoofing_isDstOrSrc = (unsigned char)PyLong_AsLong(value);
         return 0;
     }
     else {
