@@ -82,6 +82,19 @@ celerybeat-schedule
 venv/
 ENV/
 
+# MSVC Release / Debug stuff
+msvc/Release*
+msvc/Debug*
+*.sdf
+*.sdo
+*.suo
+*.opensdf
+*.vcxproj.user
+*.ipch
+
+# Python Build stuff
+*.whl
+
 # Spyder project settings
 .spyderproject
 
