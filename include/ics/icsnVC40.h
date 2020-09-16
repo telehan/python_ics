@@ -42,7 +42,6 @@ typedef unsigned __int64 uint64_t;
 #endif
 
 
-
 // MSVC++ 10.0 _MSC_VER == 1600 64-bit version doesn't allow multi-line #if directives...
 #if defined(_WIN64) || defined(__x86_64__) || defined(__aarch64__) || defined(__x86_64__) || defined(__LP64__) || defined(_M_AMD64) || \
 	defined(_M_IA64) || defined(__PPC64__)
@@ -140,7 +139,6 @@ typedef unsigned __int64 uint64_t;
 #define NETID_DEVICE_STATUS 513
 #define NETID_UDP 514
 #define NETID_AUTOSAR 515
-#define NETID_FORWARDED_MESSAGE 516
 
 /* Upper boundry of Network IDs */
 #define NETID_MAX 100
@@ -3422,9 +3420,6 @@ typedef struct SPhyRegPktHdr
 	uint8_t entryBytes;
 }PhyRegPktHdr_t;
 
-#define MAX_PHY_SETTINGS_STRUCT	128
-#define MAX_NUMBYTES_PHYSETTINGS MAX_PHY_SETTINGS_STRUCT*sizeof(PhyRegPktHdr_t)
-
 typedef struct SPhyRegPktClause22Mess
 {
 	uint8_t phyAddr; //5 bits
@@ -3461,6 +3456,10 @@ typedef struct SPhyRegPkt
 		PhyRegPktClause45Mess_t clause45;
 	};
 }PhyRegPkt_t;
+
+#define MAX_PHY_SETTINGS_STRUCT	128
+#define MAX_NUMBYTES_PHYSETTINGS MAX_PHY_SETTINGS_STRUCT*sizeof(PhyRegPkt_t)
+
 
 
 #ifndef INTREPID_NO_CHECK_STRUCT_SIZE
